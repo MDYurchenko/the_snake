@@ -40,8 +40,44 @@ clock = pygame.time.Clock()
 
 
 # Тут опишите все классы игры.
-...
+class GameObject:
+    def __init__(self, position):
+        self.body_color = None
+        self.position = position
 
+    def draw(self):
+        pass
+
+class Snake(GameObject):
+
+    def __init__(self):
+        self.length = 1
+        self.positions = () #
+        self.direction = (0, 1)
+        self.next_direction = None
+        self.body_color = (0, 255, 0)
+
+    def update_direction(self, new_direction):
+        self.direction = new_direction
+    def move(self, direction):
+        self.positions  = self.positions[1]+self.direction + self.positions[:-1]
+
+    def draw(self):
+        pass
+
+    def get_head_position(self):
+        pass
+
+    def reset(self):
+        pass
+
+class Apple(GameObject):
+    def __init__(self):
+        self.body_color = (255, 0, 0)
+        self.position = (randint(0, GRID_WIDTH), randint(0, GRID_HEIGHT))
+
+    def randomize_position(self):
+        self.position = (randint(0, GRID_WIDTH), randint(0, GRID_HEIGHT))
 
 def main():
     # Инициализация PyGame:
