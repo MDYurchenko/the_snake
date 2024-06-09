@@ -57,19 +57,37 @@ class Snake(GameObject):
         self.next_direction = None
         self.body_color = (0, 255, 0)
 
-    def update_direction(self, new_direction):
-        self.direction = new_direction
-    def move(self, direction):
-        self.positions  = self.positions[1]+self.direction + self.positions[:-1]
+    def update_direction(self):
+     if self.next_direction:
+        self.direction = self.next_direction
+        self.next_direction = None
+
+    def move(self):
+        self.positions = [tuple([x + y for x, y in zip(self.positions[0], self.direction)]),] + self.positions[:-1]
 
     def draw(self):
-        pass
+        for position in self.positions[:-1]:
+            rect = (pygame.Rect(position, (GRID_SIZE, GRID_SIZE)))
+            pygame.draw.rect(screen, self.body_color, rect)
+            pygame.draw.rect(screen, BORDER_COLOR, rect, 1)
+
+        # Отрисовка головы змейки
+        head_rect = pygame.Rect(self.positions[0], (GRID_SIZE, GRID_SIZE))
+        pygame.draw.rect(screen, self.body_color, head_rect)
+        pygame.draw.rect(screen, BORDER_COLOR, head_rect, 1)
+
+        # Затирание последнего сегмента
+        if self.last:
+            last_rect = pygame.Rect(self.last, (GRID_SIZE, GRID_SIZE))
+            pygame.draw.rect(screen, BOARD_BACKGROUND_COLOR, last_rect)
 
     def get_head_position(self):
-        pass
+        return self.positions[0]
 
     def reset(self):
-        pass
+        self.length = 1
+        self.positions = [(randint(0, GRID_WIDTH), randint(0, GRID_HEIGHT)), ]
+        self.direction = (1, 0)
 
 class Apple(GameObject):
     def __init__(self):
@@ -79,11 +97,18 @@ class Apple(GameObject):
     def randomize_position(self):
         self.position = (randint(0, GRID_WIDTH), randint(0, GRID_HEIGHT))
 
+    def draw(self):
+        rect = pygame.Rect(self.position, (GRID_SIZE, GRID_SIZE))
+        pygame.draw.rect(screen, self.body_color, rect)
+        pygame.draw.rect(screen, BORDER_COLOR, rect, 1)
+
 def main():
     # Инициализация PyGame:
     pygame.init()
     # Тут нужно создать экземпляры классов.
-    ...
+
+    snake = Snake()
+    apple = Apple()
 
     # while True:
     #     clock.tick(SPEED)
