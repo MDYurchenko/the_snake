@@ -1,4 +1,5 @@
-from random import choice, randint
+from random import choice, randint, randrange
+import time
 
 import pygame
 
@@ -52,11 +53,11 @@ class Snake(GameObject):
 
     def __init__(self):
         self.length = 1
-        self.positions = [(SCREEN_WIDTH/2, SCREEN_HEIGHT/2)] #
-        self.position = (SCREEN_WIDTH/2, SCREEN_HEIGHT/2)
+        self.positions = [(SCREEN_WIDTH/2, SCREEN_HEIGHT/2)]
+        self.position = (int(SCREEN_WIDTH/2), int(SCREEN_HEIGHT/2))
         self.direction = (0, 1)
         self.next_direction = None
-        self.body_color = (0, 255, 0)
+        self.body_color = SNAKE_COLOR
         self.last = None
 
     def update_direction(self):
@@ -64,27 +65,34 @@ class Snake(GameObject):
         self.direction = self.next_direction
         self.next_direction = None
 
+    def __check_edge(self):
+        next_position = tuple([snake_coord + speed_proection for snake_coord, speed_proection in zip(self.position, map(lambda coord: coord * SPEED, self.direction))])
+        if next_position[0] < 0:
+            self.position = (int(SCREEN_WIDTH - GRID_SIZE), next_position[1])
+        elif next_position[0] >= SCREEN_WIDTH:
+            self.position = (0, next_position[1])
+        elif next_position[1] < 0:
+            self.position = (next_position[0], int(SCREEN_HEIGHT - GRID_SIZE))
+        elif next_position[1] >= SCREEN_HEIGHT:
+            self.position = (next_position[0], 0)
+        else:
+            self.position = next_position
+
+
+    def eat_apple(self):
+        self.length += 1
+        self.positions += [self.last]
+        self.last = None
+
     def move(self):
+
+        self.__check_edge()
+
         self.last = self.positions[-1]
-        if self.position[0] + 20*self.direction[0] > SCREEN_WIDTH:
-            y = self.position[1]
-            self.position = (0, y)
-            self.positions[0] = (0, y)
-        elif self.position[0] + 20*self.direction[0] < 0:
-            y = self.position[1]
-            self.position = (SCREEN_WIDTH, y)
-            self.positions[0] = (SCREEN_WIDTH, y)
-        elif self.position[1] + 20*self.direction[1] < 0:
-            x = self.position[0]
-            self.position = (x, SCREEN_HEIGHT)
-            self.positions[0] = (x, SCREEN_HEIGHT)
-        elif self.position[1] + 20 * self.direction[1] > SCREEN_HEIGHT:
-            x = self.position[0]
-            self.position = (x, 0)
-            self.positions[0] = (x, 0)
-        self.positions = [tuple([x + y for x, y in zip(self.positions[0], map(lambda x: x*20, self.direction))]),] + self.positions[:-1]
+
+        self.positions = [self.position] + self.positions[:-1]
         print(self.positions)
-        self.position = self.positions[0]
+
 
 
     def draw(self):
@@ -102,22 +110,23 @@ class Snake(GameObject):
         if self.last:
             last_rect = pygame.Rect(self.last, (GRID_SIZE, GRID_SIZE))
             pygame.draw.rect(screen, BOARD_BACKGROUND_COLOR, last_rect)
+            print((f'Затерл {self.last}'))
 
     def get_head_position(self):
         return self.positions[0]
 
     def reset(self):
         self.length = 1
-        self.positions = [(randint(0, SCREEN_WIDTH), randint(0, SCREEN_HEIGHT)), ]
+        self.positions = [(randint(0, SCREEN_WIDTH), randint(0, SCREEN_HEIGHT)),]
         self.direction = (1, 0)
 
 class Apple(GameObject):
     def __init__(self):
         self.body_color = (255, 0, 0)
-        self.position = (randint(0, SCREEN_WIDTH), randint(0, SCREEN_HEIGHT))
+        self.position = (randrange(0, SCREEN_WIDTH, GRID_SIZE), randrange(0, SCREEN_HEIGHT, GRID_SIZE))
 
     def randomize_position(self):
-        self.position = (randint(0, SCREEN_WIDTH), randint(0, SCREEN_HEIGHT))
+        self.position = (randrange(0, SCREEN_WIDTH, GRID_SIZE), randrange(0, SCREEN_HEIGHT, GRID_SIZE))
 
     def draw(self):
         rect = pygame.Rect(self.position, (GRID_SIZE, GRID_SIZE))
@@ -139,6 +148,12 @@ def handle_keys(game_object):
              elif event.key == pygame.K_RIGHT and game_object.direction != LEFT:
                  game_object.next_direction = RIGHT
 
+def is_apple_cell(snake: Snake, apple: Apple):
+    if snake.position == apple.position:
+        print('в яблочко')
+        apple.randomize_position()
+        snake.eat_apple()
+
 def main():
     # Инициализация PyGame:
     pygame.init()
@@ -147,18 +162,25 @@ def main():
     snake = Snake()
     apple = Apple()
 
-    #pygame.draw.rect(screen, (255, 255, 255), (10, 10, 10, 10))
-    #pygame.display.update()
+    rect = pygame.Rect((620, 460), (GRID_SIZE, GRID_SIZE))
+    pygame.draw.rect(screen, (225, 0, 0), rect)
 
     while True:
         clock.tick(SPEED)
+        time.sleep(0.2)
 
         # Тут опишите основную логику игры.
         apple.draw()
         snake.draw()
+
         handle_keys(snake)
         snake.update_direction()
+
+
         snake.move()
+        is_apple_cell(snake, apple)
+        print(snake.position, apple.position)
+
         pygame.display.update()
 
 
