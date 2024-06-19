@@ -1,11 +1,15 @@
-from game_objects import *
+import pygame
+import time
+from game_objects import Snake, Apple
+from the_snake.field_settings import DOWN, SPEED, UP, LEFT, RIGHT, clock
 
 
 def handle_keys(game_object: Snake):
     """
     Handles keystrokes "up", "down", "left", "right", "Esc" on keyboard.
     Used to set next_direction for Snake.
-    :param game_object: class instance that moves across the game field. Supposed Snake object.
+    :param game_object: class instance that moves across the game field.
+    Supposed Snake object.
     """
 
     for event in pygame.event.get():
@@ -25,8 +29,9 @@ def handle_keys(game_object: Snake):
 
 def is_apple_cell(snake: Snake, apple: Apple):
     """
-    Checks if snake head located at cell with apple. If so, spawn new apple, delete old apple
-     and increase snake length by 1.
+    Checks if snake head located at cell with apple.
+    If so, spawn new apple, delete old apple
+    and increase snake length by 1.
     :param snake: Snake instance
     :param apple: Apple instance
     """
@@ -39,7 +44,8 @@ def is_apple_cell(snake: Snake, apple: Apple):
 def main():
     """
     Initialize game. Create objects of classes Snake and Apple.
-    Provide main game logic: snake and apple spawning, moving, interaction snake with the
+    Provide main game logic: snake and apple spawning,
+    moving, interaction snake with the
     environment. Set the end of game condition.
     """
     pygame.init()
