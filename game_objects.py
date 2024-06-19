@@ -1,8 +1,9 @@
 import pygame
 import time
 from random import randrange
+
 from field_settings import SCREEN_WIDTH, SCREEN_HEIGHT, SNAKE_COLOR, SPEED, \
-     GRID_SIZE, screen, BORDER_COLOR, BOARD_BACKGROUND_COLOR, APPLE_COLOR
+    GRID_SIZE, screen, BORDER_COLOR, BOARD_BACKGROUND_COLOR, APPLE_COLOR
 
 
 class GameObject:
