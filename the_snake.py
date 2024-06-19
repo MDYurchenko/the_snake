@@ -11,7 +11,6 @@ def handle_keys(game_object: Snake):
     :param game_object: class instance that moves across the game field.
     Supposed Snake object.
     """
-
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
@@ -35,7 +34,6 @@ def is_apple_cell(snake: Snake, apple: Apple):
     :param snake: Snake instance
     :param apple: Apple instance
     """
-
     if snake.position == apple.position:
         apple.randomize_position()
         snake.eat_apple()

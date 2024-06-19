@@ -2,7 +2,7 @@ import pygame
 import time
 from random import randrange
 from field_settings import SCREEN_WIDTH, SCREEN_HEIGHT, SNAKE_COLOR, SPEED, \
-      GRID_SIZE, screen, BORDER_COLOR, BOARD_BACKGROUND_COLOR, APPLE_COLOR
+     GRID_SIZE, screen, BORDER_COLOR, BOARD_BACKGROUND_COLOR, APPLE_COLOR
 
 
 class GameObject:
@@ -12,6 +12,7 @@ class GameObject:
     body_color - color of object
     position - position of apple or head snake position
     """
+
     def __init__(self):
         self.body_color = None
         self.position = None
@@ -22,6 +23,7 @@ class GameObject:
 
 class Snake(GameObject):
     """The main object of the game, that is controlled by player."""
+
     def __init__(self):
         super().__init__()
         self.length = 1
@@ -65,9 +67,9 @@ class Snake(GameObject):
                 zip(
                     self.position,
                     map(lambda coord: coord * SPEED, self.direction)
-                    )
+                )
             ]
-                               )
+        )
         if next_position[0] < 0:
             self.position = (int(SCREEN_WIDTH - GRID_SIZE), next_position[1])
         elif next_position[0] >= SCREEN_WIDTH:
@@ -102,7 +104,7 @@ class Snake(GameObject):
 
     def draw(self):
         """
-        verrides parent method. Draw head and body of snake.
+        Overrides parent method. Draw head and body of snake.
         Wash last body cell.
         """
         for position in self.positions[:-1]:
@@ -132,7 +134,6 @@ class Snake(GameObject):
         Sets action executed at the game end:
         erase old snake, draw new snake.
         """
-
         for body_cell in self.positions:
             body_rect = pygame.Rect(body_cell, (GRID_SIZE, GRID_SIZE))
             pygame.draw.rect(screen, BOARD_BACKGROUND_COLOR, body_rect)
@@ -145,6 +146,7 @@ class Snake(GameObject):
 
 class Apple(GameObject):
     """Apple object, that designed to be eaten by a snake"""
+
     def __init__(self):
         super().__init__()
         self.body_color = APPLE_COLOR
