@@ -1,6 +1,7 @@
 import pygame
 import time
 from random import randrange
+from typing import Union
 
 # Константы для размеров поля и сетки:
 SCREEN_WIDTH, SCREEN_HEIGHT = 640, 480
@@ -54,6 +55,28 @@ class GameObject:
     def draw(self):
         """Used to draw object on game field. Override in child class."""
 
+    @staticmethod
+    def create_body_cell(position: tuple,
+                         grid_size_x: Union[float, int],
+                         grid_size_y: Union[float, int],
+                         window: pygame.display.set_mode,
+                         color: tuple,
+                         border_required: bool
+                         ):
+        """
+        This method is used to draw a body parts of game objects.
+        :position - coordinates of cell;
+        :grid_size_x, grid_size_y - length of x side and y side;
+        :window -  display of pygame;
+        :color - color of object cell;
+        :border_required - boolean parameter, define if
+        it is necessary to draw border around cell.
+        """
+        rect = pygame.Rect(position, (grid_size_x, grid_size_y))
+        pygame.draw.rect(window, color, rect)
+        if border_required:
+            pygame.draw.rect(window, BORDER_COLOR, rect, 1)
+
 
 class Snake(GameObject):
     """The main object of the game, that is controlled by player."""
@@ -70,15 +93,6 @@ class Snake(GameObject):
 
         self.body_color = SNAKE_COLOR
 
-    def __check_eat_yourself(self):
-        """
-        Checks if snake head is at snake body cell.
-        If so, restarts the game.
-        Uses attributes: position and positions.
-        """
-        if self.position in self.positions[1:]:
-            self.reset()
-
     def update_direction(self):
         """
         Sets direction of snake motion in next time tick
@@ -87,33 +101,6 @@ class Snake(GameObject):
         if self.next_direction:
             self.direction = self.next_direction
             self.next_direction = None
-
-    def __check_edge(self):
-        """
-        Calculates new head position. If position isn't at game field,
-        sets head position at the opposite side of
-        game field.
-        """
-        next_position = tuple(
-            [
-                snake_coord + speed_projection for
-                snake_coord, speed_projection in
-                zip(
-                    self.position,
-                    map(lambda coord: coord * SPEED, self.direction)
-                )
-            ]
-        )
-        if next_position[0] < 0:
-            self.position = (int(SCREEN_WIDTH - GRID_SIZE), next_position[1])
-        elif next_position[0] >= SCREEN_WIDTH:
-            self.position = (0, next_position[1])
-        elif next_position[1] < 0:
-            self.position = (next_position[0], int(SCREEN_HEIGHT - GRID_SIZE))
-        elif next_position[1] >= SCREEN_HEIGHT:
-            self.position = (next_position[0], 0)
-        else:
-            self.position = next_position
 
     def eat_apple(self):
         """
@@ -131,10 +118,15 @@ class Snake(GameObject):
         sets list of snake parts positions. Checks if snake eat yourself.
         :return:
         """
-        self.__check_edge()
+        # self.__check_edge()
+
+        self.position = (
+            (self.position[0] + self.direction[0] * GRID_SIZE) % SCREEN_WIDTH,
+            (self.position[1] + self.direction[1] * GRID_SIZE) % SCREEN_HEIGHT
+        )
+
         self.last = self.positions[-1]
         self.positions = [self.position] + self.positions[:-1]
-        self.__check_eat_yourself()
 
     def draw(self):
         """
@@ -142,19 +134,29 @@ class Snake(GameObject):
         Wash last body cell.
         """
         for position in self.positions[:-1]:
-            rect = (pygame.Rect(position, (GRID_SIZE, GRID_SIZE)))
-            pygame.draw.rect(screen, self.body_color, rect)
-            pygame.draw.rect(screen, BORDER_COLOR, rect, 1)
+            self.create_body_cell(position,
+                                  GRID_SIZE, GRID_SIZE,
+                                  screen,
+                                  self.body_color,
+                                  True
+                                  )
 
         # Отрисовка головы змейки
-        head_rect = pygame.Rect(self.positions[0], (GRID_SIZE, GRID_SIZE))
-        pygame.draw.rect(screen, self.body_color, head_rect)
-        pygame.draw.rect(screen, BORDER_COLOR, head_rect, 1)
+        self.create_body_cell(self.positions[0],
+                              GRID_SIZE, GRID_SIZE,
+                              screen,
+                              self.body_color,
+                              True
+                              )
 
         # Затирание последнего сегмента
         if self.last:
-            last_rect = pygame.Rect(self.last, (GRID_SIZE, GRID_SIZE))
-            pygame.draw.rect(screen, BOARD_BACKGROUND_COLOR, last_rect)
+            self.create_body_cell(self.last,
+                                  GRID_SIZE, GRID_SIZE,
+                                  screen,
+                                  BOARD_BACKGROUND_COLOR,
+                                  False
+                                  )
 
     def get_head_position(self):
         """
@@ -169,8 +171,12 @@ class Snake(GameObject):
         erase old snake, draw new snake.
         """
         for body_cell in self.positions:
-            body_rect = pygame.Rect(body_cell, (GRID_SIZE, GRID_SIZE))
-            pygame.draw.rect(screen, BOARD_BACKGROUND_COLOR, body_rect)
+            self.create_body_cell(body_cell,
+                                  GRID_SIZE, GRID_SIZE,
+                                  screen,
+                                  BOARD_BACKGROUND_COLOR,
+                                  False
+                                  )
         self.length = 1
         self.positions = [(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)]
         self.position = (int(SCREEN_WIDTH / 2), int(SCREEN_HEIGHT / 2))
@@ -194,9 +200,12 @@ class Apple(GameObject):
 
     def draw(self):
         """Draws apple at game field."""
-        rect = pygame.Rect(self.position, (GRID_SIZE, GRID_SIZE))
-        pygame.draw.rect(screen, self.body_color, rect)
-        pygame.draw.rect(screen, BORDER_COLOR, rect, 1)
+        self.create_body_cell(self.position,
+                              GRID_SIZE, GRID_SIZE,
+                              screen,
+                              self.body_color,
+                              True
+                              )
 
 
 def handle_keys(game_object: Snake):
@@ -219,6 +228,16 @@ def handle_keys(game_object: Snake):
                 game_object.next_direction = LEFT
             elif event.key == pygame.K_RIGHT and game_object.direction != LEFT:
                 game_object.next_direction = RIGHT
+
+
+def check_eat_yourself(snake: Snake):
+    """
+    Checks if snake head is at snake body cell.
+    If so, restarts the game.
+    Uses attributes: position and positions.
+    """
+    if snake.position in snake.positions[3:]:
+        snake.reset()
 
 
 def is_apple_cell(snake: Snake, apple: Apple):
@@ -256,6 +275,7 @@ def main():
         handle_keys(snake)
         snake.update_direction()
         snake.move()
+        check_eat_yourself(snake)
         is_apple_cell(snake, apple)
 
         pygame.display.update()
